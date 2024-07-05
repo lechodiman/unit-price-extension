@@ -4,12 +4,65 @@ const observer = new MutationObserver((mutations, obs) => {
   }
 });
 
+// Strategy interface
+class UnitPriceStrategy {
+  calculate(price, quantity) {
+    throw new Error("Method 'calculate()' must be implemented.");
+  }
+}
+
+// Concrete strategies
+class UnStrategy extends UnitPriceStrategy {
+  calculate(price, units) {
+    return Math.round(price / units);
+  }
+}
+
+class KgStrategy extends UnitPriceStrategy {
+  calculate(price, weight) {
+    return Math.round(price / weight);
+  }
+}
+
+class GStrategy extends UnitPriceStrategy {
+  calculate(price, weight) {
+    const weightInKg = weight / 1000; // Convert grams to kilograms
+    return Math.round(price / weightInKg);
+  }
+}
+
+// Unit Matcher Registry
+class UnitMatcherRegistry {
+  constructor() {
+    this.registry = [];
+  }
+
+  register(pattern, strategy) {
+    this.registry.push({ pattern, strategy });
+  }
+
+  match(productName) {
+    for (const { pattern, strategy } of this.registry) {
+      const match = productName.match(pattern);
+      if (match) {
+        return { match, strategy };
+      }
+    }
+    return null;
+  }
+}
+
+// Initialize registry and register unit patterns with strategies
+const unitMatcherRegistry = new UnitMatcherRegistry();
+unitMatcherRegistry.register(/(\d+)\sUn/, new UnStrategy());
+unitMatcherRegistry.register(/(\d+(?:\.\d+)?)\s(kg)/, new KgStrategy());
+unitMatcherRegistry.register(/(\d+(?:\.\d+)?)\s(g)/, new GStrategy());
+
+// Modified processProductCards function
 function processProductCards() {
   const productCards = document.querySelectorAll('.product-block');
 
   if (productCards.length > 0) {
-    console.log('Hello from content.js');
-
     productCards.forEach((card) => {
       const productName = card.querySelector('h2').innerText;
       const priceElement = card.querySelector('.product-card__sale-price span');
@@ -18,37 +71,20 @@ function processProductCards() {
         priceText.replace('$', '').replace('.', '').replace(',', '.')
       );
 
-      // Enhanced regex to match units in "Un", "kg", and "g"
-      const unitsMatch = productName.match(/(\d+)\sUn|(\d+(?:\.\d+)?)\s(kg|g)/);
+      const matchResult = unitMatcherRegistry.match(productName);
 
-      if (unitsMatch) {
-        let unitPrice;
-        if (unitsMatch[3] === 'kg') {
-          // If the unit is in kilograms
-          const weightInKg = parseFloat(unitsMatch[2]);
-          unitPrice = Math.round(price / weightInKg);
-        } else if (unitsMatch[3] === 'g') {
-          // If the unit is in grams
-          const weightInKg = parseFloat(unitsMatch[2]) / 1000; // Convert grams to kilograms
-          unitPrice = Math.round(price / weightInKg);
-        } else if (unitsMatch[1]) {
-          // If the unit is in 'Un'
-          const units = parseInt(unitsMatch[1], 10);
-          unitPrice = Math.round(price / units);
-        }
+      if (matchResult) {
+        const { match, strategy } = matchResult;
+        const quantity = parseFloat(match[1]);
+        const unitPrice = strategy.calculate(price, quantity);
 
-        if (unitPrice) {
-          const unitPriceElement = document.createElement('div');
+        const unitPriceElement = document.createElement('div');
 
-          if (unitsMatch[3] === 'kg' || unitsMatch[3] === 'g') {
-            unitPriceElement.innerText = `Precio por kg: $${unitPrice}`;
-          } else {
-            unitPriceElement.innerText = `Precio por unidad: $${unitPrice}`;
-          }
-
-          unitPriceElement.classList.add('product-description');
-          priceElement.parentElement.appendChild(unitPriceElement);
-        }
+        unitPriceElement.innerText = `Precio por ${
+          match[2] === 'g' ? 'kg' : match[2] || 'unidad'
+        }: $${unitPrice}`;
+        unitPriceElement.classList.add('product-description');
+        priceElement.parentElement.appendChild(unitPriceElement);
       }
     });
 
