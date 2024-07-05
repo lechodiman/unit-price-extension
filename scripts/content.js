@@ -42,13 +42,11 @@ class UnitMatcherRegistry {
   }
 }
 
-// Initialize registry and register unit patterns with strategies
 const unitMatcherRegistry = new UnitMatcherRegistry();
 unitMatcherRegistry.register(/(\d+)\sUn/, new UnStrategy());
 unitMatcherRegistry.register(/(\d+(?:\.\d+)?)\s(kg)/, new KgStrategy());
 unitMatcherRegistry.register(/(\d+(?:\.\d+)?)\s(g)/, new GStrategy());
 
-// Modified processProductCards function
 function processProductCards() {
   const productCards = document.querySelectorAll('.product-block');
 
