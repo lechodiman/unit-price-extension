@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "Lider Unit Price Calculator",
+  "version": "1.0",
+  "description": "Calculates the unit price of a product based on the price and quantity.",
+  "icons": {
+    "16": "images/icon-16.png",
+    "32": "images/icon-32.png",
+    "128": "images/icon-128.png"
+  },
+  "content_scripts": [
+    {
+      "js": ["scripts/content.js"],
+      "matches": ["https://www.lider.cl/supermercado/search?*"]
+    }
+  ]
+}
