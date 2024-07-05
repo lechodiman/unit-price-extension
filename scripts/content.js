@@ -14,19 +14,41 @@ function processProductCards() {
       const productName = card.querySelector('h2').innerText;
       const priceElement = card.querySelector('.product-card__sale-price span');
       const priceText = priceElement.innerText;
-      const price = parseFloat(priceText.replace('$', '').replace('.', ''));
+      const price = parseFloat(
+        priceText.replace('$', '').replace('.', '').replace(',', '.')
+      );
 
-      // Assuming the format "ProductName X Un, Y g" to extract units
-      const unitsMatch = productName.match(/(\d+)\sUn/);
+      // Enhanced regex to match units in "Un", "kg", and "g"
+      const unitsMatch = productName.match(/(\d+)\sUn|(\d+(?:\.\d+)?)\s(kg|g)/);
 
-      if (unitsMatch && unitsMatch.length > 1) {
-        const units = parseInt(unitsMatch[1], 10);
-        const unitPrice = Math.round(price / units);
+      if (unitsMatch) {
+        let unitPrice;
+        if (unitsMatch[3] === 'kg') {
+          // If the unit is in kilograms
+          const weightInKg = parseFloat(unitsMatch[2]);
+          unitPrice = Math.round(price / weightInKg);
+        } else if (unitsMatch[3] === 'g') {
+          // If the unit is in grams
+          const weightInKg = parseFloat(unitsMatch[2]) / 1000; // Convert grams to kilograms
+          unitPrice = Math.round(price / weightInKg);
+        } else if (unitsMatch[1]) {
+          // If the unit is in 'Un'
+          const units = parseInt(unitsMatch[1], 10);
+          unitPrice = Math.round(price / units);
+        }
 
-        const unitPriceElement = document.createElement('div');
-        unitPriceElement.innerText = `Precio por unidad: $${unitPrice}`;
-        unitPriceElement.classList.add('product-description');
-        priceElement.parentElement.appendChild(unitPriceElement);
+        if (unitPrice) {
+          const unitPriceElement = document.createElement('div');
+
+          if (unitsMatch[3] === 'kg' || unitsMatch[3] === 'g') {
+            unitPriceElement.innerText = `Precio por kg: $${unitPrice}`;
+          } else {
+            unitPriceElement.innerText = `Precio por unidad: $${unitPrice}`;
+          }
+
+          unitPriceElement.classList.add('product-description');
+          priceElement.parentElement.appendChild(unitPriceElement);
+        }
       }
     });
 
