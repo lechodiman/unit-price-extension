@@ -3,33 +3,33 @@ const observer = new MutationObserver((mutations, obs) => {
     processProductCards();
   }
 });
-
 // Strategy interface
-class UnitPriceStrategy {
-  calculate(price, quantity) {
+const UnitPriceStrategy = {
+  calculate: (price, quantity) => {
     throw new Error("Method 'calculate()' must be implemented.");
-  }
-}
+  },
+  getUnit: () => {
+    throw new Error("Method 'getUnit()' must be implemented.");
+  },
+};
 
-// Concrete strategies
-class UnStrategy extends UnitPriceStrategy {
-  calculate(price, units) {
-    return Math.round(price / units);
-  }
-}
+const UnStrategy = {
+  calculate: (price, units) => Math.round(price / units),
+  getUnit: () => 'Unidad',
+};
 
-class KgStrategy extends UnitPriceStrategy {
-  calculate(price, weight) {
-    return Math.round(price / weight);
-  }
-}
+const KgStrategy = {
+  calculate: (price, weight) => Math.round(price / weight),
+  getUnit: () => 'Kg',
+};
 
-class GStrategy extends UnitPriceStrategy {
-  calculate(price, weight) {
+const GStrategy = {
+  calculate: (price, weight) => {
     const weightInKg = weight / 1000; // Convert grams to kilograms
     return Math.round(price / weightInKg);
-  }
-}
+  },
+  getUnit: () => 'Kg' /* Final unit after conversion*/,
+};
 
 // Unit Matcher Registry
 class UnitMatcherRegistry {
@@ -80,9 +80,7 @@ function processProductCards() {
 
         const unitPriceElement = document.createElement('div');
 
-        unitPriceElement.innerText = `Precio por ${
-          match[2] === 'g' ? 'kg' : match[2] || 'unidad'
-        }: $${unitPrice}`;
+        unitPriceElement.innerText = `Precio por ${strategy.getUnit()}: $${unitPrice}`;
         unitPriceElement.classList.add('product-description');
         priceElement.parentElement.appendChild(unitPriceElement);
       }
