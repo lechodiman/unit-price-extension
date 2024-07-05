@@ -3,15 +3,6 @@ const observer = new MutationObserver((mutations, obs) => {
     processProductCards();
   }
 });
-// Strategy interface
-const UnitPriceStrategy = {
-  calculate: (price, quantity) => {
-    throw new Error("Method 'calculate()' must be implemented.");
-  },
-  getUnit: () => {
-    throw new Error("Method 'getUnit()' must be implemented.");
-  },
-};
 
 const UnStrategy = {
   calculate: (price, units) => Math.round(price / units),
@@ -31,7 +22,6 @@ const GStrategy = {
   getUnit: () => 'Kg' /* Final unit after conversion*/,
 };
 
-// Unit Matcher Registry
 class UnitMatcherRegistry {
   constructor() {
     this.registry = [];
